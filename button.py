@@ -7,6 +7,7 @@ import requests
 import threading
 from manage_config import config_load, config_save
 
+font = ("Lexend", 24, "bold")
 
 class Client:
     def __init__(self):
@@ -29,10 +30,16 @@ class Client:
 
         #       screen submit
         self.screen_submit = tk.Frame(self.root, padx=0, pady=0)
-        btn_submit = tk.Button(self.screen_submit, text="teste", bg="#2196F3", fg="white", font=("Lexend", 24, "bold"), 
+        btn_submit = tk.Button(self.screen_submit, text="teste", bg="#2196F3", fg="white", font=font, 
                                command=lambda: self.send_file(entry_folder.get(), 'teste.py'))
         btn_submit.pack(expand=True, fill='both', padx=0, pady=0)
+
+        btn_exit = tk.Button(self.screen_submit, text="sair", bg="#ff3c3c", fg="white", font=font,
+                             command=lambda: self.exit_classroom())
+        btn_exit.pack(expand=True, fill='both', padx=0, pady=0)
+
         self.screens.append(self.screen_submit)
+
 
 
         #       screen config
@@ -56,6 +63,7 @@ class Client:
                 entry_folder.insert(0, folder)
         
         def handle_config_accept():
+            print("handle config accept")
             self.send_classroom_join(entry_password.get())
             self.show_screen(self.screen_submit)
 
@@ -85,7 +93,12 @@ class Client:
         url = self.server_url+'api/class/join/'+password
         print(url)
         response = requests.post(url)
-        config_save({'classroom_token': response.json()['token']})
+        token = response.json()['token']
+        print(f"join token: {token}")
+        if token:
+            print("entrou")
+            config_save({'classroom_token': token})
+            self.config = config_load()
 
     def send_file(self, dir: str, filename: str):
         filepath = dir + '/' + filename
@@ -94,7 +107,19 @@ class Client:
         files = {'file': open(filepath, 'rb')}
         url = self.server_url+"api/code/"+lang
         print(f"url {url}")
-        response = requests.post(url, files=files, headers={'Authorization': 'Bearer ' + self.config['classroom_token']})
+        try:
+
+            response = requests.post(url, files=files, headers={'Authorization': 'Bearer ' + self.config['classroom_token']})
+            print(response)
+        except Exception as err:
+            print(f"post code ERROR: {err}")
+
+    def exit_classroom(self):
+        try:
+            response = requests.post(self.server_url+"api/class/exit", headers={'Authorization': 'Bearer ' + self.config['classroom_token']})
+            print(response.json())
+        except Exception as err:
+            print(f"exit class ERROR: {err}")
 
 if __name__ == "__main__":
     app = Client()

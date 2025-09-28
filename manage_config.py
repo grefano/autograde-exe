@@ -16,7 +16,7 @@ def config_load():
     if not os.path.exists(config_path_file):
         config_default = {
             'first_use': True,
-            "folder": "C:/Users/gabri/OneDrive/Code/autograde/student/files_test"
+            "folder": "C:/Users/gabri/OneDrive/Code/autograde/autograde-exe/files_test"
         }
 
         with open(config_path_file, 'w') as f:
