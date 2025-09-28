@@ -26,24 +26,34 @@ class Client:
         self.root.attributes('-topmost', '1')
 
         self.screens = []
+        self.screens_packs = {}
 
 
         #       screen submit
         self.screen_submit = tk.Frame(self.root, padx=0, pady=0)
-        btn_submit = tk.Button(self.screen_submit, text="teste", bg="#2196F3", fg="white", font=font, 
+        btn_exit = tk.Button(self.screen_submit, text="sair", bg="#ff3c3c", fg="white", font=("Lexend", 12),
+                             command=lambda: self.exit_classroom(), anchor='w')
+        btn_exit.pack()
+
+        btn_submit = tk.Button(self.screen_submit, text="Submit", bg="#2196F3", fg="white", font=font, 
                                command=lambda: self.send_file(entry_folder.get(), 'teste.py'))
         btn_submit.pack(expand=True, fill='both', padx=0, pady=0)
 
-        btn_exit = tk.Button(self.screen_submit, text="sair", bg="#ff3c3c", fg="white", font=font,
-                             command=lambda: self.exit_classroom())
-        btn_exit.pack(expand=True, fill='both', padx=0, pady=0)
-
-        self.screens.append(self.screen_submit)
+        self.screen_register(self.screen_submit, expand=True, fill='both')
+        # self.screens.append(self.screen_submit)
 
 
 
         #       screen config
         self.screen_config = tk.Frame(self.root)
+
+        frame_name = tk.Frame(self.screen_config)
+        frame_name.pack(padx=0, pady=0, fill='both')
+
+        entry_name = tk.Entry(frame_name, font=("Arial", 10))
+        entry_name.insert(0, self.config['name'])
+        entry_name.pack(side='left', fill='both', expand=False, padx=0, pady=0)
+        
         frame_folder = tk.Frame(self.screen_config, bg='blue')
         frame_folder.pack(pady=0, padx=0, fill='both')
         
@@ -55,7 +65,6 @@ class Client:
         entry_password.insert(0, 'teste')
         entry_password.pack(side='left', fill='both', expand=True)
         
-        
         def select_folder():
             folder = filedialog.askdirectory()
             if folder:
@@ -64,7 +73,7 @@ class Client:
         
         def handle_config_accept():
             print("handle config accept")
-            self.send_classroom_join(entry_password.get())
+            self.send_classroom_join(entry_password.get(), entry_name.get())
             self.show_screen(self.screen_submit)
 
 
@@ -72,9 +81,12 @@ class Client:
         folder_btn.pack(side='right', padx=(0, 0))
         btn_set = tk.Button(self.screen_config, text="Accept", command=handle_config_accept) #show_screen(self.screen_submit)
         btn_set.pack()
-        self.screens.append(self.screen_config)
+        self.screen_register(self.screen_config, expand=False)
+        # self.screens.append({screen=self.screen_config, args_pack=(fill='both')})
 
-
+    def screen_register(self, screen, **kwargs):
+        self.screens.append(screen)
+        self.screens_packs[screen] = kwargs
         
     def create_function_show_screen(self, screen_to_show):
         return self.show_screen(screen_to_show)
@@ -82,22 +94,22 @@ class Client:
     def show_screen(self, screen_to_show):
         for screen in self.screens:
             screen.pack_forget()
-        screen_to_show.pack(expand=True)
+        screen_to_show.pack(self.screens_packs.get(screen_to_show, {}))
 
     def show(self):
         self.show_screen(self.screen_config)
         self.root.mainloop()
     
 
-    def send_classroom_join(self, password):
-        url = self.server_url+'api/class/join/'+password
+    def send_classroom_join(self, password, name):
+        url = self.server_url+'api/class/join/'+password+'/'+name
         print(url)
         response = requests.post(url)
         token = response.json()['token']
         print(f"join token: {token}")
         if token:
             print("entrou")
-            config_save({'classroom_token': token})
+            config_save({'classroom_token': token, 'name': name})
             self.config = config_load()
 
     def send_file(self, dir: str, filename: str):
@@ -117,6 +129,7 @@ class Client:
     def exit_classroom(self):
         try:
             response = requests.post(self.server_url+"api/class/exit", headers={'Authorization': 'Bearer ' + self.config['classroom_token']})
+            self.show_screen(self.screen_config)
             print(response.json())
         except Exception as err:
             print(f"exit class ERROR: {err}")
