@@ -1,4 +1,4 @@
 @echo off
-pyinstaller --onefile --windowed button.py
+pyinstaller --onefile --windowed --add-data "icons;icons" button.py
 echo executavel foi criado
 pause
