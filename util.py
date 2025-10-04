@@ -22,7 +22,7 @@ def color_hex_to_hsv(hex: str):
 def color_rgb_to_hex(r, g, b):
     return '#{:02x}{:02x}{:02x}'.format(int(r * 255), int(g * 255), int(b * 255))
 
-def color_hex_add_hsv(hex: str, h, s, v):
+def color_hex_add_hsv(hex: str, h, s, v): 
     ho, so, vo = color_hex_to_hsv(hex)
     ho += h
     so += s

@@ -72,7 +72,7 @@ class Button(Window):
         frame_folder.pack(pady=0, padx=0, fill='both')
         
         entry_folder = tk.Entry(frame_folder, font=get_button_font(10))
-        entry_folder.insert(0, self.config['folder'])
+        entry_folder.insert(0, self.config['folder_files'])
         entry_folder.pack(side='left', fill='both', expand=True)
 
         entry_password = tk.Entry(self.screen_config, font=get_button_font(10))
@@ -87,6 +87,7 @@ class Button(Window):
         
         def handle_config_accept():
             print("handle config accept")
+            config_save({'folder_files': entry_folder.get(), 'folder_returns': entry_folder.get()})
             entrou = self.send_classroom_join(entry_password.get(), entry_name.get())
             if entrou:
                 self.show_screen(self.screen_submit)
