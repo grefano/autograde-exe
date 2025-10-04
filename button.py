@@ -4,80 +4,22 @@ import json
 import os
 from pathlib import Path
 import requests
-import threading
 from manage_config import config_load, config_save
 from dotenv import load_dotenv
-import colorsys
-from typing import Any
+
+from util import add_button_effect_hover, get_button_font, params_button_icon, params_button_text
+from window import *
+from returns import Returns
 
 load_dotenv()
 
-def get_button_font(size, style = None):
-    if style == None:
-        return ("Lexend", size)
-    else:
-        return ("Lexend", size, style)
-
 server_url = os.getenv("SERVER_URL") or ""
 
-def clamp(val, val_min, val_max):
-    return max(min(val, val_max), val_min)
-
-def color_hex_to_hsv(hex: str):
-    print(f"hex {hex}")
-    hex = hex.lstrip('#')
-    print(f"hex strip {hex}")
-    r, g, b = tuple(int(hex[i:i+2], 16) / 255.0 for i in (0, 2, 4))
-    h, s, v = colorsys.rgb_to_hsv(r, g, b)
-    return (h, s, v)
-
-def color_rgb_to_hex(r, g, b):
-    return '#{:02x}{:02x}{:02x}'.format(int(r * 255), int(g * 255), int(b * 255))
-
-def color_hex_add_hsv(hex: str, h, s, v):
-    ho, so, vo = color_hex_to_hsv(hex)
-    ho += h
-    so += s
-    vo += v
-    ho = clamp(ho, 0, 1)
-    so = clamp(so, 0, 1)
-    vo = clamp(vo, 0, 1)
-    r, g, b = colorsys.hsv_to_rgb(ho, so, vo)
-    return color_rgb_to_hex(r, g, b)
 
 
 
-def add_button_effect_hover(button: tk.Button, btn_type):
-    valid_types = {'text', 'icon'}
-    if (btn_type not in valid_types):
-        raise ValueError(f"btn_type {btn_type} é inválido")
     
-    if btn_type == 'text':
-        color = button.cget('bg')
-        color_hover = color_hex_add_hsv(color, 0, -0.2, -0.2)
-        button.bind("<Enter>", lambda e: button.config(bg=color_hover))
-        button.bind("<Leave>", lambda e: button.config(bg=color))
-    elif btn_type == 'icon':
-        # color = button.cget('bg')
-        # color_hover = color_hex_add_hsv(color, 0, -0.2, -0.2)
-        # button.bind("<Enter>", lambda e: button.config(bg=color_hover, activebackground=color_hover))
-        # button.bind("<Leave>", lambda e: button.config(bg=color, activebackground=color))
-        pass
-
-
-params_button_icon: dict[str, Any] = {
-    'borderwidth': 0,
-    'highlightthickness': 0,
-    'relief':'flat',
-    'cursor':'hand2',
-}
-
-params_button_text: dict[str, Any] = {
-    'relief':'flat',
-    'cursor':'hand2',
-}
-
-class Client:
+class Button(Window):
     def __init__(self):
         
         self.config = config_load()
@@ -89,7 +31,7 @@ class Client:
         self.root.title('autograde')
 
         w, h = 288, 180
-        x, y = 1920-w-30, 1080-h-60
+        x, y = 1920-w-30, 1080-h-80
         self.root.geometry(f"{w}x{h}+{x}+{y}")
         self.root.attributes('-topmost', '1')
 
@@ -157,22 +99,7 @@ class Client:
         self.screen_register(self.screen_config, expand=False)
         # self.screens.append({screen=self.screen_config, args_pack=(fill='both')})
 
-    def screen_register(self, screen, **kwargs):
-        self.screens.append(screen)
-        self.screens_packs[screen] = kwargs
-        
-    def create_function_show_screen(self, screen_to_show):
-        return self.show_screen(screen_to_show)
 
-    def show_screen(self, screen_to_show):
-        for screen in self.screens:
-            screen.pack_forget()
-        screen_to_show.pack(self.screens_packs.get(screen_to_show, {}))
-
-    def show(self):
-        self.show_screen(self.screen_config)
-        self.root.mainloop()
-    
 
     def send_classroom_join(self, password, name):
         url = server_url+'api/class/join/'+password+'/'+name
@@ -220,6 +147,3 @@ class Client:
             print(f"exit class ERROR: {err}")
         self.show_screen(self.screen_config)
 
-if __name__ == "__main__":
-    app = Client()
-    app.show()
