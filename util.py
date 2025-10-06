@@ -2,6 +2,8 @@ import colorsys
 from tkinter import Button
 from typing import Any
 
+
+
 def get_button_font(size, style = None):
     if style == None:
         return ("Lexend", size)

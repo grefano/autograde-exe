@@ -7,8 +7,11 @@ from window import *
 from manage_config import config_load
 from util import add_button_effect_hover, params_button_text, params_button_icon
 
-server_url = os.getenv("SERVER_URL") or ""
-
+load_dotenv()
+server_url = os.getenv("SERVER_URL")
+if server_url == None:
+    print(f"!!!!!")
+    server_url = ""
 
 class Returns(Window):
     def __init__(self, root) -> None:
@@ -76,6 +79,9 @@ class Returns(Window):
 
     def get_returns(self):
         self.config = config_load()
+        if server_url == None:
+            return
+        print(f"server url {server_url}")
         response = requests.get(server_url+'api/code/return', headers={'Authorization': 'Bearer ' + self.config['classroom_token']})
         print(response)
         data = response.json()

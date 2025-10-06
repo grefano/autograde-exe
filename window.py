@@ -1,7 +1,13 @@
 class Window:
-    def __init_(self):
+    def __init__(self):
         self.screens = []
         self.screens_packs = {}
+        self.config = {}
+
+    def get_config(self, key):
+        config = self.config[key]
+        return config
+    
     def screen_register(self, screen, **kwargs):
         self.screens.append(screen)
         self.screens_packs[screen] = kwargs

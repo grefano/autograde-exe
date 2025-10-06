@@ -39,19 +39,35 @@ class Button(Window):
         self.screens_packs = {}
 
 
+        self.window_returns = None
+        
+
         #       screen submit
         self.screen_submit = tk.Frame(self.root, padx=0, pady=0)
         icon_close = tk.PhotoImage(file="icons/icon_close.png")
-        # icon_close = icon_close.subsample(icon_close.width() // 30, icon_close.height() // 30)
-        btn_exit = tk.Button(self.screen_submit, image=icon_close, command=lambda: self.exit_classroom(), anchor='w', **params_button_icon)
+        icon_notification = tk.PhotoImage(file="icons/icon_notification.png")
+        icon_notification_unread = tk.PhotoImage(file="icons/icon_notification_unread.png")
+
+        frame_top = tk.Frame(self.screen_submit, padx=0, pady=0)
+        frame_top.pack(padx=0, pady=0, fill='both', side='top', anchor='n')
+
+        btn_exit = tk.Button(frame_top, image=icon_close, command=lambda: self.exit_classroom(), **params_button_icon)
         setattr(btn_exit, 'image', icon_close)
         add_button_effect_hover(btn_exit, 'icon')
-        btn_exit.pack(anchor='nw')
+        btn_exit.grid(row=0, column=0, sticky='w')
+
+        btn_returns = tk.Button(frame_top, image=icon_notification, command=self.handle_btn_returns, **params_button_icon)
+        setattr(btn_returns, 'image', icon_notification)
+        add_button_effect_hover(btn_returns, 'icon')
+        btn_returns.grid(row=0, column=1, sticky='nsew')
+
+        entry_filename = tk.Entry(frame_top, font=get_button_font(10))
+        entry_filename.grid(row=0, column=2, sticky='e')
 
         btn_submit = tk.Button(self.screen_submit, text="Submit", bg="#2196F3",
-                               command=lambda: self.send_file(entry_folder.get(), 'teste.py'), font=get_button_font(20), fg='white', **params_button_text)
+                               command=lambda: self.send_file(entry_folder.get(), entry_filename.get()), font=get_button_font(20), fg='white', **params_button_text)
         add_button_effect_hover(btn_submit, 'text')
-        btn_submit.pack(expand=True, fill='both', padx=0, pady=0)
+        btn_submit.pack(expand=True, fill='both', padx=0, pady=0, side='bottom')
 
         self.screen_register(self.screen_submit, expand=True, fill='both')
         # self.screens.append(self.screen_submit)
@@ -76,7 +92,7 @@ class Button(Window):
         entry_folder.pack(side='left', fill='both', expand=True)
 
         entry_password = tk.Entry(self.screen_config, font=get_button_font(10))
-        entry_password.insert(0, 'VdEgQ')
+        entry_password.insert(0, 'zULPk')
         entry_password.pack(side='left', fill='both', expand=True)
         
         def select_folder():
@@ -100,7 +116,12 @@ class Button(Window):
         self.screen_register(self.screen_config, expand=False)
         # self.screens.append({screen=self.screen_config, args_pack=(fill='both')})
 
-
+    def handle_btn_returns(self):
+        if self.window_returns == 'normal':
+            self.window_returns.root.destroy()
+        else:
+            self.window_returns = Returns(self.root)
+            self.window_returns.show_screen(self.window_returns.screen_list)
 
     def send_classroom_join(self, password, name):
         url = server_url+'api/class/join/'+password+'/'+name
@@ -123,6 +144,7 @@ class Button(Window):
         # !!! e se a sala estiver fechada?
 
     def send_file(self, dir: str, filename: str):
+        # filename = self.get_config("filename")
         filepath = dir + '/' + filename
         lang = filename.split('.')[-1]
         print(f"send filepath {filepath}")
